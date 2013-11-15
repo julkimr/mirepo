@@ -1,0 +1,115 @@
+import sqlite3
+
+homework = sqlite3.connect(':memory:')
+c = homework.cursor()
+
+# Create database for Bayesian network
+
+c.execute('CREATE TABLE Asia (A text, P float)')
+c.execute('INSERT INTO Asia VALUES ("Y", 0.01)')
+c.execute('INSERT INTO Asia VALUES ("N", 0.99)')
+homework.commit()
+
+c.execute('CREATE TABLE Tuberculosis (T text, A text, P float)')
+c.execute('INSERT INTO Tuberculosis VALUES ("Y", "Y", 0.05)')
+c.execute('INSERT INTO Tuberculosis VALUES ("N", "Y", 0.95)')
+c.execute('INSERT INTO Tuberculosis VALUES ("Y", "N", 0.01)')
+c.execute('INSERT INTO Tuberculosis VALUES ("N", "N", 0.99)')
+homework.commit()
+
+c.execute('CREATE TABLE Smoke (S text, P float)')
+c.execute('INSERT INTO Smoke VALUES ("Y", 0.50)')
+c.execute('INSERT INTO Smoke VALUES ("N", 0.50)')
+homework.commit()
+
+c.execute('CREATE TABLE Lung (L text, S text, P float)')
+c.execute('INSERT INTO Lung VALUES ("Y", "Y", 0.10)')
+c.execute('INSERT INTO Lung VALUES ("N", "Y", 0.90)')
+c.execute('INSERT INTO Lung VALUES ("Y", "N", 0.01)')
+c.execute('INSERT INTO Lung VALUES ("N", "N", 0.99)')
+homework.commit()
+
+c.execute('CREATE TABLE Bronchitis (B text, S text, P float)')
+c.execute('INSERT INTO Bronchitis VALUES ("Y", "Y", 0.60)')
+c.execute('INSERT INTO Bronchitis VALUES ("N", "Y", 0.40)')
+c.execute('INSERT INTO Bronchitis VALUES ("Y", "N", 0.30)')
+c.execute('INSERT INTO Bronchitis VALUES ("N", "N", 0.70)')
+homework.commit()
+
+
+c.execute('CREATE TABLE Either (E text, L text, T text, P float)')
+c.execute('INSERT INTO Either VALUES ("Y", "Y", "Y",1.00)')
+c.execute('INSERT INTO Either VALUES ("Y", "Y", "N",1.00)')
+c.execute('INSERT INTO Either VALUES ("Y", "N", "Y",1.00)')
+c.execute('INSERT INTO Either VALUES ("Y", "N", "N",0.00)')
+c.execute('INSERT INTO Either VALUES ("N", "Y", "Y",0.00)')
+c.execute('INSERT INTO Either VALUES ("N", "Y", "N",0.00)')
+c.execute('INSERT INTO Either VALUES ("N", "N", "Y",0.00)')
+c.execute('INSERT INTO Either VALUES ("N", "N", "N",1.00)')
+homework.commit()
+
+c.execute('CREATE TABLE Dyspnea (D text, E text, B text, P float)')
+c.execute('INSERT INTO Dyspnea VALUES ("Y", "Y", "Y",0.90)')
+c.execute('INSERT INTO Dyspnea VALUES ("Y", "Y", "N",0.70)')
+c.execute('INSERT INTO Dyspnea VALUES ("Y", "N", "Y",0.80)')
+c.execute('INSERT INTO Dyspnea VALUES ("Y", "N", "N",0.10)')
+c.execute('INSERT INTO Dyspnea VALUES ("N", "Y", "Y",0.10)')
+c.execute('INSERT INTO Dyspnea VALUES ("N", "Y", "N",0.30)')
+c.execute('INSERT INTO Dyspnea VALUES ("N", "N", "Y",0.20)')
+c.execute('INSERT INTO Dyspnea VALUES ("N", "N", "N",0.90)')
+homework.commit()
+
+c.execute('CREATE TABLE Xray (X text, E text, P float)')
+c.execute('INSERT INTO Xray VALUES ("Y", "Y", 0.98)')
+c.execute('INSERT INTO Xray VALUES ("N", "Y", 0.02)')
+c.execute('INSERT INTO Xray VALUES ("Y", "N", 0.05)')
+c.execute('INSERT INTO Xray VALUES ("N", "N", 0.95)')
+homework.commit()
+
+c.execute('SELECT Tuberculosis.T, SUM(Asia.P*Tuberculosis.P*XRay.P*Dyspnea.P*Either.P*Bronchitis.P*Lung.P*Smoke.P) \
+           FROM Asia, Tuberculosis, XRay, Dyspnea, Either, Bronchitis, Lung, Smoke \
+		   WHERE XRay.X="Y" AND Dyspnea.D="N" AND Smoke.S="N" AND Asia.A="Y" \
+           AND Either.E=XRay.E AND Dyspnea.B=Bronchitis.B AND Dyspnea.E=Either.E AND Either.E=Either.E AND Either.T=Tuberculosis.T\
+		   AND Either.L=Lung.L AND Lung.S=Smoke.S AND Bronchitis.S=Smoke.S AND Asia.A=Tuberculosis.A\
+           GROUP BY Tuberculosis.T' )
+
+result = c.fetchall()
+print result
+n = result[0][1]
+y = result[1][1]
+print y / (y + n)
+
+c.execute('SELECT Lung.L, SUM(Asia.P*Tuberculosis.P*XRay.P*Dyspnea.P*Either.P*Bronchitis.P*Lung.P*Smoke.P) \
+           FROM Asia, Tuberculosis, XRay, Dyspnea, Either, Bronchitis, Lung, Smoke \
+		   WHERE XRay.X="Y" AND Dyspnea.D="N" AND Smoke.S="N" AND Asia.A="Y" \
+           AND Either.E=XRay.E AND Dyspnea.B=Bronchitis.B AND Dyspnea.E=Either.E AND Either.E=Either.E AND Either.T=Tuberculosis.T\
+		   AND Either.L=Lung.L AND Lung.S=Smoke.S AND Bronchitis.S=Smoke.S AND Asia.A=Tuberculosis.A\
+           GROUP BY Lung.L' )
+
+result = c.fetchall()
+print result
+n = result[0][1]
+y = result[1][1]
+print y / (y + n)
+
+c.execute('SELECT Bronchitis.B, SUM(Asia.P*Tuberculosis.P*XRay.P*Dyspnea.P*Either.P*Bronchitis.P*Lung.P*Smoke.P) \
+		   FROM Asia, Tuberculosis, XRay, Dyspnea, Either, Bronchitis, Lung, Smoke \
+           WHERE XRay.X="Y" AND Dyspnea.D="N" AND Smoke.S="N" AND Asia.A="Y" \
+           AND Either.E=XRay.E AND Dyspnea.B=Bronchitis.B AND Dyspnea.E=Either.E AND Either.E=Either.E AND Either.T=Tuberculosis.T\
+		   AND Either.L=Lung.L AND Lung.S=Smoke.S AND Bronchitis.S=Smoke.S AND Asia.A=Tuberculosis.A\
+           GROUP BY Bronchitis.B')
+		   
+result = c.fetchall()
+print result
+n = result[0][1]
+y = result[1][1]
+print y / (y + n)
+
+
+
+
+
+
+
+
+
