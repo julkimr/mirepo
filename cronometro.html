@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Ejemplo Opcional Crono</title>
+		<meta charset="UTF-8">
+		
+		<script type="text/javascript" src="zepto.min.js" ></script>
+
+ 		<script type="text/javascript" src="touch.js" > </script>
+		
+		<script type="text/javascript">
+			$(function(){ /* Esta función equivale a $(document).ready(function()
+						     Es una forma abreviada de declararla. Sirve para 
+							 ejecutar el contenido del script de código cuando
+							 se ha terminado de cargar el árbol DOM del documento.
+							 Revisa la introducción a Jquery del curso, debes tener
+							 claro
+						  */
+				/* Variables para almacenar el tiempo transcurrido (t) y 
+				   para recoger el objeto DOM con id="crono"
+				*/
+				var t, cl = $("#crono");
+
+				function mostrar(){ 
+					/* en esta función lo único que se hace es insertar en el 
+					   contenido html (lo que muestra en la página web) de la 
+					   etiqueta cl lo que hubiera más la cadena a la que se le
+					   suma una décima. El método toFixed sirve para mostrar una
+					   única cifra decimal
+					*/
+					cl.html((+cl.html() + 0.1).toFixed(1)); 
+				};
+				
+				function arrancar(){
+					/* Aquí se llama al método setInterval para arrancar el 
+					   cronómetro con la función mostrar y actualizarlo cada
+					   100 milisegundos. Se puede jugar con esta cifra para 
+					   ver cómo varía el funcionamiento del crono
+					*/
+					t=setInterval(mostrar, 100);
+				};
+				function parar(){
+					/* Para parar el crono llamamos al método clearInterval, 
+					   pasándole como parámetro la variable t que declaramos 
+					   al principio del script
+					*/
+					clearInterval(t);
+					/* Cuando paramos el crono, debemos volver a poner t como undefined,
+					   esto es para poder emplear la función cambiar, que se basa en distinguir
+					   si t es undefined o bien tiene otro valor
+					*/
+					t=undefined;
+					// Cuando hemos parado el cronómetro, generamos un elemento de la lista de paradas
+					$('#lista_paradas').append($('#crono').html() + " sgs" + "<br>");
+				};
+				function cambiar(){
+					/* Esta función realiza la conmutación entre el estado de 
+					   funcionamiento y el de parada
+					*/
+					if (!t){ // equivale a preguntar: if(t === undefined)
+						/* Si t tiene el valor undefined, hay que arrancar el 
+						   crono
+						*/
+						arrancar();
+					}else{ // S t tiene otro valor, hay que parar el crono
+						parar();
+					}
+				};
+				function inicializar(){
+					/* Esta función cumple la especificación del enunciado referente
+					   a inicializar el crono SOLO si el crono está parado
+					   Si t === undefined ( es decir, !t) el crono está parado, 
+					   inicializa el crono y limpia la lista
+					*/
+					if(!t){
+						cl.html("0.0");
+						$('#lista_paradas').html("Instantes de Parada del Crono: " + "<br>");
+					}
+				};
+				
+				/* Estas dos sentencias hacen referencia al funcionamiento de los botones
+				   Se les asigna un evento y un método a ejecutar si sucede dicho evento
+				*/
+
+				$("#cambiar").on('click', cambiar);
+				$("#inicializar").on('click',inicializar);
+		 });
+		</script>
+	</head>
+
+	<body>
+		<div class="contenedor">
+
+			<div id="titulo">
+				<h2>Cronómetro</h2>
+			</div>
+
+			<div id="cronometro">
+				<h2><span id="crono"> 0.0 </span> segundos </h2>
+			</div>
+
+			<div id="botones">
+				<button type="button" id="cambiar"> arrancar/parar </button>
+				<button type="button" id="inicializar">  inicializar </button>
+			</div>
+
+			<div id="lista_paradas"><p>Instantes de Parada del Crono:</p>
+			</div>
+
+	</div>
+	</body>
+</html>
